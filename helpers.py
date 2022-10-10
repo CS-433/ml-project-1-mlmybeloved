@@ -2,32 +2,16 @@
 """some helper functions."""
 import numpy as np
 
-def load_data(sub_sample=True, add_outlier=False):
-    """Load data and convert it to the metric system."""
-    ### TODO CHANGE THIS TO WORK WITH TRAIN.CSV OR TEST.CSV
-    path_dataset = "height_weight_genders.csv"
-    data = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=[1, 2])
-    height = data[:, 0]
-    weight = data[:, 1]
-    gender = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=[0],
-        converters={0: lambda x: 0 if b"Male" in x else 1})
-    # Convert to metric system
-    height *= 0.025
-    weight *= 0.454
-
-    # sub-sample
-    if sub_sample:
-        height = height[::50]
-        weight = weight[::50]
-
-    if add_outlier:
-        # outlier experiment
-        height = np.concatenate([height, [1.1, 1.2]])
-        weight = np.concatenate([weight, [51.5/0.454, 55.3/0.454]])
-
-    return height, weight, gender
+def load_data(train=True):
+    """Load data."""
+    path_dataset = "train.csv" if train else "test.csv"
+    values = np.genfromtxt(
+        path_dataset, delimiter=",", skip_header=1, usecols=range(2, 32))
+    res = np.genfromtxt(
+        path_dataset, delimiter=",", skip_header=1, usecols=[1],
+        converters={1: lambda x: 0 if b"b" in x else 1})
+    
+    return res, values
 
 
 def standardize(x):
@@ -38,9 +22,8 @@ def standardize(x):
     x = x / std_x
     return x, mean_x, std_x
 
-def build_model_data():
+def build_model_data(y, x):
     """Form (y,tX) to get regression data in matrix form."""
-    ### TODO IMPLEMENT THIS ACCORDING TO THE CSV FILES DATA
     num_samples = len(y)
     tx = np.c_[np.ones(num_samples), x]
     return y, tx

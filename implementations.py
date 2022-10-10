@@ -3,7 +3,7 @@
 from helpers import *
 import numpy as np
 
-def compute_mse(y, tx, w)
+def compute_mse(y, tx, w):
     """Calculate the mse loss
     
     Args:
@@ -29,7 +29,7 @@ def compute_mse_gradient(y, tx, w):
     Returns:
         An numpy array of shape (D, ) (same shape as w), containing the gradient of the loss at w.
     """
-
+    
     return -1/np.size(y)*tx.T@(y-(tx@w))
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
