@@ -3,6 +3,40 @@
 from helpers import *
 import numpy as np
 
+def standardize(x):
+    """Standardizes matrix x
+    
+    Args:
+        x: numpy array of shape (N,D), D is the number of features.
+        
+    Returns:
+        x: standardized x matrix
+        mean_x: array of column means of x
+        std_x: array of column standard deviations of x
+    """
+    
+    mean_x = np.mean(x, axis=0)
+    x = x - mean_x
+    std_x = np.std(x, axis=0)
+    if std_x: # Avoids NaN columns i.e column is useless
+        x = x / std_x
+    return x, mean_x, std_x
+
+def add_x_bias(x):
+    """Adds bias term in x
+    
+    Args:
+        y: numpy array of shape (N,), N is the number of samples.
+        x: numpy array of shape (N,D), D is the number of features.
+        
+    Returns:
+        tx: numpy array of shape (N,D+1), created by adding a column of 1s to x
+    """
+    
+    N = x.shape[0]
+    tx = np.c_[np.ones(N), x]
+    return tx
+
 def compute_mse(y, tx, w):
     """Calculate the mse loss
     
@@ -12,14 +46,31 @@ def compute_mse(y, tx, w):
         w: weights, numpy array of shape(D,), D is the number of features.
         
     Returns:
-        the value of the loss (a scalar), corresponding to the input parameters w.
+        the value of the MSE loss (scalar), corresponding to the input parameters w.
     """
 
     N = np.size(y)
-    return (1/(2*N))*np.sum((y-tx@w)**2)
+    e_n = y-tx@w # Error vector
+    return (1/N)*np.sum(e_n**2)
+
+def compute_mae(y, tx, w):
+    """Calculate the mae loss
+    
+    Args:
+        y: numpy array of shape (N,), N is the number of samples.
+        tx: numpy array of shape (N,D), D is the number of features.
+        w: weights, numpy array of shape(D,), D is the number of features.
+        
+    Returns:
+        the value of the MAE loss (scalar), corresponding to the input parameters w.
+    """
+
+    N = np.size(y)
+    e_n = y-tx@w # Error vector
+    return (1/N)*np.sum(np.abs(e_n))
 
 def compute_mse_gradient(y, tx, w):
-    """Computes the gradient at w.
+    """Computes the MSE gradient at w.
         
     Args:
         y: numpy array of shape=(N, )
@@ -27,7 +78,7 @@ def compute_mse_gradient(y, tx, w):
         w: numpy array of shape=(D, ). The vector of model parameters.
         
     Returns:
-        An numpy array of shape (D, ) (same shape as w), containing the gradient of the loss at w.
+        An numpy array of shape (D, ) containing the gradient of the loss at w.
     """
     
     return -1/np.size(y)*tx.T@(y-(tx@w))
