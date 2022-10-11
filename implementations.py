@@ -1,7 +1,25 @@
 # -*- coding: utf-8 -*-
 """ML functions to be used in the training"""
-from helpers import *
 import numpy as np
+
+def load_data(train=True):
+    """Loads data from csv files.
+    
+    Args:
+        train: boolean indicating if we are loading the train set or the test set.
+        
+    Returns:
+        res: numpy array of shape (N,), labels.
+        values: numpy array of shape (N,D), D is the number of features.
+    """
+    
+    path_dataset = "train.csv" if train else "test.csv"
+    values = np.genfromtxt(
+        path_dataset, delimiter=",", skip_header=1, usecols=range(2, 32))
+    res = np.genfromtxt(
+        path_dataset, delimiter=",", skip_header=1, usecols=[1],
+        converters={1: lambda x: 0 if b"b" in x else 1})
+    return res, values
 
 def standardize(x):
     """Standardizes matrix x.
@@ -131,7 +149,8 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
-        mse: scalar, mean squared error."""
+        mse: scalar, mean squared error.
+    """
     
     w = initial_w
     for n_iter in range(max_iters):
@@ -140,31 +159,57 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     mse = compute_mse(y, tx, w)
     return w, mse
 
+def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
+    """
+    Generate a minibatch iterator for a dataset.
+    Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
+    Outputs an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
+    Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
+    Example of use :
+    for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
+        <DO-SOMETHING>
+    """
+    
+    data_size = len(y)
+
+    if shuffle:
+        shuffle_indices = np.random.permutation(np.arange(data_size))
+        shuffled_y = y[shuffle_indices]
+        shuffled_tx = tx[shuffle_indices]
+    else:
+        shuffled_y = y
+        shuffled_tx = tx
+    for batch_num in range(num_batches):
+        start_index = batch_num * batch_size
+        end_index = min((batch_num + 1) * batch_size, data_size)
+        if start_index != end_index:
+            yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
+
 def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     """The Stochastic Gradient Descent algorithm (SGD) using MSE (batch size 1).
             
     Args:
-        y: numpy array of shape=(N, )
-        tx: numpy array of shape=(N,D)
-        initial_w: numpy array of shape=(D,). The initial guess (or the initialization) for the model parameters
-        max_iters: a scalar denoting the total number of iterations of SGD
-        gamma: a scalar denoting the stepsize
+        y: numpy array of shape=(N, ).
+        tx: numpy array of shape=(N,D).
+        initial_w: numpy array of shape=(D,). The initial guess (or the initialization) for the model parameters.
+        max_iters: a scalar denoting the total number of iterations of SGD.
+        gamma: a scalar denoting the stepsize.
         
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
-        mse: scalar."""
+        mse: scalar, mean squared error.
+    """
     
     w = initial_w
     for n_iter in range(max_iters):
-        minibatch_y, minibatch_tx = next(batch_iter(y, tx, 1))
-        grad = compute_mse_gradient(minibatch_y, minibatch_tx, w)
-        w = w - gamma*grad
+        minibatch_y, minibatch_tx = next(batch_iter(y, tx, 1)) # Batch size of 1
+        gradient = compute_mse_gradient(minibatch_y, minibatch_tx, w)
+        w = w - gamma*gradient
     mse = compute_mse(y, tx, w)
-    return (w, mse)
+    return w, mse
 
 def least_squares(y, tx):
-    """Calculate the least squares solution.
-       returns mse, and optimal weights.
+    """Computes the least squares solution.
     
     Args:
         y: numpy array of shape (N,), N is the number of samples.
@@ -172,14 +217,15 @@ def least_squares(y, tx):
     
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
-        mse: scalar."""
+        mse: scalar, mean squared error.
+    """
 
     w = np.linalg.solve(tx.T@tx, tx.T@y)
     mse = compute_mse(y, tx, w)
-    return (w, mse)
+    return w, mse
 
 def ridge_regression(y, tx, lambda_):
-    """implement ridge regression.
+    """Computes ridge regression.
     
     Args:
         y: numpy array of shape (N,), N is the number of samples.
@@ -188,20 +234,15 @@ def ridge_regression(y, tx, lambda_):
     
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
-        mse: scalar."""
+        mse: scalar, mean squared error.
+    """
     
     w = np.linalg.inv(tx.T@tx + 2*np.size(y)*lambda_*np.eye(tx.shape[1]))@tx.T@y
     mse = compute_mse(y, tx, w)
-    return (w, mse)
+    return w, mse
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
-    
-    
-    return (w, loss)
-
-
+    return w, loss
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-    
-    
-    return (w, loss)
+    return w, loss
