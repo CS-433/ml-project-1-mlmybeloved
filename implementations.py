@@ -50,8 +50,8 @@ def compute_mse(y, tx, w):
     """
 
     N = np.size(y)
-    e_n = y-tx@w # Error vector
-    return (1/N)*np.sum(e_n**2)
+    error = y-tx@w # Error vector
+    return (1/N)*np.sum(error**2)
 
 def compute_mae(y, tx, w):
     """Calculate the mae loss
@@ -66,8 +66,8 @@ def compute_mae(y, tx, w):
     """
 
     N = np.size(y)
-    e_n = y-tx@w # Error vector
-    return (1/N)*np.sum(np.abs(e_n))
+    error = y-tx@w # Error vector
+    return (1/N)*np.sum(np.abs(error))
 
 def compute_mse_gradient(y, tx, w):
     """Computes the MSE gradient at w.
@@ -81,7 +81,26 @@ def compute_mse_gradient(y, tx, w):
         An numpy array of shape (D, ) containing the gradient of the loss at w.
     """
     
-    return -1/np.size(y)*tx.T@(y-(tx@w))
+    N = np.size(y)
+    error = y-tx@w
+    return (-1/N)*tx.T@(error)
+
+def compute_mae_gradient(y, tx, w):
+    """Computes the MAE gradient at w.
+        
+    Args:
+        y: numpy array of shape=(N, )
+        tx: numpy array of shape=(N,D)
+        w: numpy array of shape=(D, ). The vector of model parameters.
+        
+    Returns:
+        An numpy array of shape (D, ) containing the gradient of the loss at w.
+    """
+    
+    N = np.size(y)
+    error = y-tx@w
+    error = np.where(error>=0, 1, -1) # error := sign(error)
+    return -(1/N)*tx.T@error
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     """The Gradient Descent (GD) algorithm using MSE.
