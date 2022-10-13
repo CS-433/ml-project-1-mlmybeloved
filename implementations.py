@@ -16,9 +16,13 @@ def load_data(train=True):
     path_dataset = "train.csv" if train else "test.csv"
     values = np.genfromtxt(
         path_dataset, delimiter=",", skip_header=1, usecols=range(2, 32))
-    res = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=[1],
-        converters={1: lambda x: 0 if b"b" in x else 1})
+    if train:
+        res = np.genfromtxt(
+            path_dataset, delimiter=",", skip_header=1, usecols=[1],
+            converters={1: lambda x: -1 if b"b" in x else 1})
+    else:
+        res = np.genfromtxt(
+            path_dataset, delimiter=",", skip_header=1, usecols=[0])
     return res, values
 
 def split_data(x, y, ratio, seed=1):
@@ -291,3 +295,43 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     return w, loss
+
+def build_prediction(x, w, threshold = 0):
+    """Builds y from x and w using a threshold to get binary outputs.
+    
+    Args:
+        x: numpy array of shape (N,D), D is the number of features, inputs of the set.
+        w: the weights to use to predict y from x.
+        threshold: the limit value at which y becomes 1 instead of -1 (since we need binary results).
+    
+    Returns:
+        y_hat: predicted y using x w and the threshold.
+    """
+    
+    y_hat_cont = x@w
+    return [1 if yi > threshold else -1 for yi in y_hat_cont]
+
+def compute_accuracy(x, y, w, threshold = 0):
+    """Computes accuracy of weights w on x and y.
+    
+    Args:
+        y: numpy array of shape (N,), N is the number of samples, labels for x.
+        x: numpy array of shape (N,D), D is the number of features, inputs of the set.
+        w: the weights to use to predict y from x.
+        threshold: the limit value at which y becomes 1 instead of -1 (since we need binary results).
+    
+    Returns:
+        accuracy: accuracy of the weights w on x and y.
+    """
+
+    return 1-abs(y-build_prediction(x, w, threshold)).mean()/2
+
+def write_to_csv(y, path):
+    """Writes an array y of outputs in a csv file at path.
+    
+    Args:
+        y: numpy array of shape (N,), the array to be written.
+        path: the path of the file (for example "foo.csv")
+    """
+    
+    np.savetxt(path, y, delimiter=",", newline="\n", header="Id,Prediction", comments="")
