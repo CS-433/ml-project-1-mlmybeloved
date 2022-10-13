@@ -21,6 +21,34 @@ def load_data(train=True):
         converters={1: lambda x: 0 if b"b" in x else 1})
     return res, values
 
+def split_data(x, y, ratio, seed=1):
+    """Split the dataset based on the split ratio. If ratio is 0.8 
+    you will have 80% of your data set dedicated to training 
+    and the rest dedicated to testing.
+    
+    Args:
+        x: numpy array of shape (N,D), to split in test and train.
+        y: numpy array of shape (N,), to split in test and train.
+        ratio: scalar in [0,1], split ratio.
+        seed: integer, seed for randomizing the split.
+        
+    Returns:
+        x_tr: numpy array containing the train data.
+        x_te: numpy array containing the test data.
+        y_tr: numpy array containing the train labels.
+        y_te: numpy array containing the test labels.
+    """
+    np.random.seed(seed)
+    split_idx = int(ratio*np.shape(x)[0])
+    shuffler = np.random.permutation(np.shape(x)[0])
+    x = x[shuffler]
+    y = y[shuffler]
+    x_tr = x[:split_idx]
+    x_te = x[split_idx:]
+    y_tr = y[:split_idx]
+    y_te = y[split_idx:]
+    return x_tr, x_te, y_tr, y_te
+
 def standardize(x):
     """Standardizes matrix x.
     
