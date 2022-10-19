@@ -135,7 +135,7 @@ def compute_mse(y, tx, w):
 
     N = np.size(y)
     error = y-tx@w # Error vector
-    return (1/N)*np.sum(error**2)
+    return (1/2*N)*np.sum(error**2)
 
 def compute_mae(y, tx, w):
     """Calculate the mae loss.
@@ -153,16 +153,30 @@ def compute_mae(y, tx, w):
     error = y-tx@w # Error vector
     return (1/N)*np.sum(np.abs(error))
 
+def compute_log_loss(y, tx, w):
+    """Calculate the logistic loss.
+
+    Args:
+        y: numpy array of shape (N,), N is the number of samples.
+        tx: numpy array of shape (N,D), D is the number of features.
+        w: weights, numpy array of shape(D,), D is the number of features.
+        
+    Returns:
+        the value of the logistic loss (scalar), corresponding to the input parameters w.
+    """
+    N = y.shape[0]
+    return 1/N * np.sum(np.log(1 + np.exp(tx@w)) - y*tx@w)
+
 def compute_mse_gradient(y, tx, w):
     """Computes the MSE gradient at w.
         
     Args:
-        y: numpy array of shape=(N, ).
+        y: numpy array of shape=(N,).
         tx: numpy array of shape=(N,D).
-        w: numpy array of shape=(D, ). The vector of model parameters.
+        w: numpy array of shape=(D,). The vector of model parameters.
         
     Returns:
-        An numpy array of shape (D, ) containing the gradient of the loss at w.
+        An numpy array of shape (D,) containing the gradient of the loss at w.
     """
     
     N = np.size(y)
@@ -173,18 +187,45 @@ def compute_mae_gradient(y, tx, w):
     """Computes the MAE gradient at w.
         
     Args:
-        y: numpy array of shape=(N, ).
+        y: numpy array of shape=(N,).
         tx: numpy array of shape=(N,D).
-        w: numpy array of shape=(D, ). The vector of model parameters.
+        w: numpy array of shape=(D,). The vector of model parameters.
         
     Returns:
-        An numpy array of shape (D, ) containing the gradient of the loss at w.
+        A numpy array of shape (D,) containing the gradient of the loss at w.
     """
     
     N = np.size(y)
     error = y-tx@w # Error vector
     error = np.where(error>=0, 1, -1) # error := sign(error)
     return -(1/N)*tx.T@error
+
+def sigmoid(t):
+    """Applies sigmoid function on t.
+
+    Args:
+        t: scalar or numpy array on which to apply sigmoid
+
+    Returns:
+        sigmoid applied to t, so either a scalar or a numpy array
+    """
+    
+    return np.exp(t)/(1 + np.exp(t))
+
+def compute_log_gradient(y, tx, w):
+    """Computes the logistic gradient at w.
+        
+    Args:
+        y: numpy array of shape=(N,).
+        tx: numpy array of shape=(N,D).
+        w: numpy array of shape=(D,). The vector of model parameters.
+        
+    Returns:
+        A numpy array of shape (D,) containing the gradient of the loss at w.
+    """
+    
+    N = y.shape[0]
+    return 1/N*tx.T@(sigmoid(tx@w)-y)
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     """The Gradient Descent (GD) algorithm using MSE.
@@ -279,7 +320,7 @@ def ridge_regression(y, tx, lambda_):
     Args:
         y: numpy array of shape (N,), N is the number of samples.
         tx: numpy array of shape (N,D), D is the number of features.
-        lambda_: scalar.
+        lambda_: scalar, penalization factor.
     
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
@@ -291,9 +332,46 @@ def ridge_regression(y, tx, lambda_):
     return w, mse
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    """The Gradient Descent (GD) algorithm using logistic loss and gradient.
+        
+    Args:
+        y: numpy array of shape=(N,).
+        tx: numpy array of shape=(N,D).
+        initial_w: numpy array of shape=(D,). The initial guess (or the initialization) for the model parameters.
+        max_iters: a scalar denoting the total number of iterations of GD.
+        gamma: a scalar denoting the stepsize.
+        
+    Returns:
+        w: optimal weights, numpy array of shape(D,), D is the number of features.
+        loss: scalar, logistic loss.
+    """
+    w = initial_w
+    for n_iter in range(max_iters):
+        gradient = compute_log_gradient(y, tx, w)
+        w = w - gamma*gradient
+    loss = compute_log_loss(y, tx, w)
     return w, loss
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    """The Gradient Descent (GD) algorithm using logistic loss and gradient with penalization.
+        
+    Args:
+        y: numpy array of shape=(N,).
+        tx: numpy array of shape=(N,D).
+        lambda_: scalar, penalization factor.
+        initial_w: numpy array of shape=(D,). The initial guess (or the initialization) for the model parameters.
+        max_iters: a scalar denoting the total number of iterations of GD.
+        gamma: a scalar denoting the stepsize.
+        
+    Returns:
+        w: optimal weights, numpy array of shape(D,), D is the number of features.
+        loss: scalar, logistic loss.
+    """
+    w = initial_w
+    for n_iter in range(max_iters):
+        gradient = compute_log_gradient(y, tx, w) + 2 * lambda_ * w
+        w -= gamma * gradient
+    loss = compute_log_loss(y, tx, w)
     return w, loss
 
 def build_prediction(x, w, threshold = 0):
