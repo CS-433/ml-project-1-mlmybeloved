@@ -19,7 +19,7 @@ def load_data(train=True):
     if train:
         res = np.genfromtxt(
             path_dataset, delimiter=",", skip_header=1, usecols=[1],
-            converters={1: lambda x: -1 if b"b" in x else 1})
+            converters={1: lambda x: 0 if b"b" in x else 1})
     else:
         res = np.genfromtxt(
             path_dataset, delimiter=",", skip_header=1, usecols=[0])
@@ -165,7 +165,7 @@ def compute_log_loss(y, tx, w):
         the value of the logistic loss (scalar), corresponding to the input parameters w.
     """
     N = y.shape[0]
-    return 1/N * np.sum(np.log(1 + np.exp(tx@w)) - y*tx@w)
+    return 1/N * np.sum(np.log(1 + np.exp(tx@w)) - y*(tx@w))
 
 def compute_mse_gradient(y, tx, w):
     """Computes the MSE gradient at w.
@@ -374,22 +374,42 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     loss = compute_log_loss(y, tx, w)
     return w, loss
 
-def build_prediction(x, w, threshold = 0):
+def build_prediction(x, w, threshold, minus_one = False):
     """Builds y from x and w using a threshold to get binary outputs.
+       Note that we go from y being 0 or 1 to y being either -1 or 1 in this method.
     
     Args:
         x: numpy array of shape (N,D), D is the number of features, inputs of the set.
         w: the weights to use to predict y from x.
         threshold: the limit value at which y becomes 1 instead of -1 (since we need binary results).
+        minus_one: whether y_hat needs to contain -1 and 1 or 0 and 1 for values
     
     Returns:
         y_hat: predicted y using x w and the threshold.
     """
     
+    second_val = -1 if minus_one else 0
     y_hat_cont = x@w
-    return [1 if yi > threshold else -1 for yi in y_hat_cont]
+    return [1 if yi > threshold else second_val for yi in y_hat_cont]
 
-def compute_accuracy(x, y, w, threshold = 0):
+def build_prediction_log(x, w, threshold = 0.5, minus_one = False):
+    """Builds y from x and w with a sigmoid using a threshold to get binary outputs.
+    
+    Args:
+        x: numpy array of shape (N,D), D is the number of features, inputs of the set.
+        w: the weights to use to predict y from x.
+        threshold: the limit value at which y becomes 1 instead of -1 (since we need binary results).
+        minus_one: whether y_hat needs to contain -1 and 1 or 0 and 1 for values
+    
+    Returns:
+        y_hat: predicted y using x w and the threshold.
+    """
+    
+    second_val = -1 if minus_one else 0
+    y_hat_cont = sigmoid(x@w)
+    return [1 if yi > threshold else second_val for yi in y_hat_cont]
+
+def compute_accuracy(x, y, w, threshold, minus_one = False):
     """Computes accuracy of weights w on x and y.
     
     Args:
@@ -397,12 +417,33 @@ def compute_accuracy(x, y, w, threshold = 0):
         x: numpy array of shape (N,D), D is the number of features, inputs of the set.
         w: the weights to use to predict y from x.
         threshold: the limit value at which y becomes 1 instead of -1 (since we need binary results).
+        minus_one: whether the output is values -1 1 or 0 1
     
     Returns:
         accuracy: accuracy of the weights w on x and y.
     """
 
-    return 1-abs(y-build_prediction(x, w, threshold)).mean()/2
+    base_mean = abs(y-build_prediction(x, w, threshold, minus_one)).mean()
+    # Divide the mean by 2 if the values are -1 1 since each error will be counted as 2 (-1 - 1)
+    if minus_one:
+        base_mean /= 2
+    return 1-base_mean
+
+def compute_accuracy_log(x, y, w, threshold = 0.5):
+    """Computes accuracy of weights w on x and y using logistic regression to build the prediction.
+    
+    Args:
+        y: numpy array of shape (N,), N is the number of samples, labels for x.
+        x: numpy array of shape (N,D), D is the number of features, inputs of the set.
+        w: the weights to use to predict y from x.
+        threshold: the limit value at which y becomes 1 instead of 0 (since we need binary results).
+    
+    Returns:
+        accuracy: accuracy of the weights w on x and y.
+    """
+
+    base_mean = abs(y-build_prediction_log(x, w, threshold)).mean()
+    return 1-base_mean
 
 def write_to_csv(y, path):
     """Writes an array y of outputs in a csv file at path.
