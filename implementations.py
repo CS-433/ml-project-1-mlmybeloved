@@ -134,7 +134,7 @@ def compute_mse(y, tx, w):
 
     N = np.size(y)
     error = y-tx@w # Error vector
-    return (1/2*N)*np.sum(error**2)
+    return 1/(2*N)*np.sum(error**2)
 
 def compute_mae(y, tx, w):
     """Calculate the mae loss.
@@ -164,7 +164,7 @@ def compute_log_loss(y, tx, w):
         the value of the logistic loss (scalar), corresponding to the input parameters w.
     """
     N = y.shape[0]
-    return 1/N * np.sum(np.log(1 + np.exp(tx@w)) - y*(tx@w))
+    return (1/N) * np.sum(np.log(1 + np.exp(tx@w)) - y*(tx@w))
 
 def compute_mse_gradient(y, tx, w):
     """Computes the MSE gradient at w.
@@ -197,7 +197,7 @@ def compute_mae_gradient(y, tx, w):
     N = np.size(y)
     error = y-tx@w # Error vector
     error = np.where(error>=0, 1, -1) # error := sign(error)
-    return -(1/N)*tx.T@error
+    return (-1/N)*tx.T@error
 
 def sigmoid(t):
     """Applies sigmoid function on t.
@@ -224,7 +224,7 @@ def compute_log_gradient(y, tx, w):
     """
     
     N = y.shape[0]
-    return 1/N*tx.T@(sigmoid(tx@w)-y)
+    return (1/N)*tx.T@(sigmoid(tx@w)-y)
 
 def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     """The Gradient Descent (GD) algorithm using MSE.
