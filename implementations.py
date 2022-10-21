@@ -87,8 +87,7 @@ def add_x_bias(x):
     return tx
 
 def build_poly(x, degree):
-    """Builds a polynomial expansion on x of degree degree, this also adds bias.
-       THIS DOES NOT ADD CROSS PRODUCTS
+    """Builds a polynomial expansion on x of degree degree, this also adds bias. Does not add cross products
     
     Args:
         x: numpy array of shape (N,), N is the number of samples.
@@ -207,7 +206,7 @@ def sigmoid(t):
         t: scalar or numpy array on which to apply sigmoid
 
     Returns:
-        sigmoid applied to t, so either a scalar or a numpy array
+        sigmoid applied to t
     """
     
     return np.exp(t)/(1 + np.exp(t))
@@ -227,7 +226,7 @@ def compute_log_gradient(y, tx, w):
     N = y.shape[0]
     return 1/N*tx.T@(sigmoid(tx@w)-y)
 
-def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     """The Gradient Descent (GD) algorithm using MSE.
         
     Args:
@@ -275,7 +274,7 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
         if start_index != end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
-def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
+def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
     """The Stochastic Gradient Descent algorithm (SGD) using MSE (batch size 1).
             
     Args:
@@ -345,6 +344,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         w: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: scalar, logistic loss.
     """
+    
     w = initial_w
     for n_iter in range(max_iters):
         gradient = compute_log_gradient(y, tx, w)
@@ -367,6 +367,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         w: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: scalar, logistic loss.
     """
+    
     w = initial_w
     for n_iter in range(max_iters):
         gradient = compute_log_gradient(y, tx, w) + 2 * lambda_ * w
