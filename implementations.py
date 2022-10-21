@@ -87,7 +87,7 @@ def add_x_bias(x):
     return tx
 
 def build_poly(x, degree):
-    """Builds a polynomial expansion on x of degree degree, this also adds bias. Does not add cross products
+    """Builds a polynomial expansion on x of degree degree. Does not add cross products
     
     Args:
         x: numpy array of shape (N,), N is the number of samples.
@@ -100,7 +100,7 @@ def build_poly(x, degree):
     expanded_X = np.ones(x.shape[0])
     for idx in range(1,degree+1):
         expanded_X = np.c_[expanded_X, x**idx]
-    return expanded_X
+    return expanded_X[:,1:]
 
 def replace_min_999_by_col_mean(x):
     """Replace invalid values -999 by column(feature) average.
