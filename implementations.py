@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ML functions to be used in the training"""
 import numpy as np
+import matplotlib.pyplot as plt
 
 def load_data(train=True, DER=True):
     """Loads data from csv files.
@@ -467,6 +468,64 @@ def compute_accuracy_log(x, y, w, threshold = 0.5):
     base_mean = abs(y-build_prediction_log(x, w, threshold)).mean()
     return 1-base_mean
 
+def threshold_selection_and_plot(tx_te, y_te, w):
+    """Threshold selection for polynomial regression model in the purpose of 
+        classifcation; i.e if prediction > threshold then
+        1 else 0.
+        Here we compute the threshold corresponding to the best
+        accruacy.
+        This method also plots the threshold-accruacy graph.
+    
+    Args:
+        tx_te: test numpy array of shape (N,D),
+            N is the number of samples, D is the number of features
+        y_te: test numpy array of shape (N), 
+            N is the number of samples, labels for tx_te.
+        w:  the weights to use to predict y_te from tx_te.
+    
+    Returns:
+        best_threshold: threshold corresponding to the best
+            accruacy of the model.
+        best_accruacy: the best accruacy of the model.
+    """
+    
+    threshold = np.linspace(-2, 2, 200)
+    accruacy = [compute_accuracy(tx_te, y_te, w, j) for j in threshold]
+    plt.plot(threshold, accruacy, c='blue')
+    plt.xlabel("Threshold")
+    plt.ylabel("Accruacy")
+    best_threshold = threshold[np.argmax(accruacy)]
+    best_accruacy = np.max(accruacy)
+    return  best_threshold, best_accruacy
+
+
+
+def ridge_lambdas_and_threshold (y_tr, tx_tr, y_te, tx_te):
+    """Lambda selection for ridge regression.
+        Print different lambdas for the model and for each lambda
+        show the best accruacy and the best threshold for classification.
+    
+    Args:
+        y_tr: training numpy array of shape (N,), N is the number of
+            samples, labels for tx_tr.
+        tx_tr: training numpy array of shape (N,D), N is the number of
+            samples, D is the number of features.
+        tx_te: test numpy array of shape (N,D), N is the number of
+            samples, D is the number of features.
+        y_te: test numpy array of shape (N), N is the number of
+            samples, labels for tx_te
+    """
+    
+    
+    lambdas = np.logspace(-5, 0, 30)
+    for lamb in lambdas:
+        w_REG, loss_tr = ridge_regression(y_tr, tx_tr, lamb)
+        threshold = np.linspace(-2, 2, 200)
+        accruacy = [compute_accuracy(tx_te, y_te, w_REG, j) for j in threshold]
+        print("lambda=", lamb, "best threshold=", threshold[np.argmax(accruacy)],
+              "accruacy=",np.max(accruacy))
+        
+
 def write_to_csv(y, path):
     """Writes an array y of outputs in a csv file at path.
     
@@ -476,3 +535,6 @@ def write_to_csv(y, path):
     """
     
     np.savetxt(path, y, delimiter=",", newline="\n", header="Id,Prediction", comments="")
+    
+    
+
