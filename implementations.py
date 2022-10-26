@@ -2,7 +2,7 @@
 """ML functions to be used in the training"""
 import numpy as np
 
-def load_data(train=True):
+def load_data(train=True, DER=True):
     """Loads data from csv files.
     
     Args:
@@ -14,8 +14,12 @@ def load_data(train=True):
     """
     
     path_dataset = "train.csv" if train else "test.csv"
-    values = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=range(2, 32))
+    if DER:
+        values = np.genfromtxt(
+            path_dataset, delimiter=",", skip_header=1, usecols=range(2, 15))
+    else:
+        values = np.genfromtxt(
+            path_dataset, delimiter=",", skip_header=1, usecols=range(15, 32))
     if train:
         res = np.genfromtxt(
             path_dataset, delimiter=",", skip_header=1, usecols=[1],
@@ -90,11 +94,11 @@ def build_poly(x, degree):
     """Builds a polynomial expansion on x of degree degree. Does not add cross products
     
     Args:
-        x: numpy array of shape (N,), N is the number of samples.
+        x: numpy array of shape (N,D), N is the number of samples.
         degree: integer.
         
     Returns:
-        poly: numpy array of shape (N,degree+1)
+        poly: numpy array of shape (N,D*degree)
     """    
 
     expanded_X = np.ones(x.shape[0])
@@ -102,6 +106,23 @@ def build_poly(x, degree):
         expanded_X = np.c_[expanded_X, x**idx]
     return expanded_X[:,1:]
 
+def build_poly_2(x):
+    """Builds a polynomial expansion on x of degree 2 with cross products.
+    
+    Args:
+        x: numpy array of shape (N,D), N is the number of samples.
+    
+    Returns:
+        poly: numpy array of shape (N,D + (D*(D + 1))/2)
+    """
+    
+    res = x
+    for i in range(x.shape[1]):
+        for j in range(i+1):
+            new_col = x[:, i]*x[:, j]
+            res = np.c_[res, new_col]
+    return res
+    
 def replace_min_999_by_col_mean(x):
     """Replace invalid values -999 by column(feature) average.
     
