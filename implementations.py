@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def load_data(train=True, DER=True):
+def load_data(train=True, mode="ALL"):
     """Loads data from csv files.
     
     Args:
@@ -15,12 +15,16 @@ def load_data(train=True, DER=True):
     """
     
     path_dataset = "train.csv" if train else "test.csv"
-    if DER:
+    if mode == "DER":
         values = np.genfromtxt(
             path_dataset, delimiter=",", skip_header=1, usecols=range(2, 15))
-    else:
+    elif mode == "PRI":
         values = np.genfromtxt(
             path_dataset, delimiter=",", skip_header=1, usecols=range(15, 32))
+    elif mode == "ALL":
+        values = np.genfromtxt(
+            path_dataset, delimiter=",", skip_header=1, usecols=range(2, 32))
+        
     if train:
         res = np.genfromtxt(
             path_dataset, delimiter=",", skip_header=1, usecols=[1],
@@ -47,6 +51,7 @@ def split_data(x, y, ratio, seed=1):
         y_tr: numpy array containing the train labels.
         y_te: numpy array containing the test labels.
     """
+    
     np.random.seed(seed)
     split_idx = int(ratio*np.shape(x)[0])
     shuffler = np.random.permutation(np.shape(x)[0])
@@ -370,7 +375,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     for n_iter in range(max_iters):
         gradient = compute_log_gradient(y, tx, w)
-        w = w - gamma*gradient
+        w = w - gamma * gradient
     loss = compute_log_loss(y, tx, w)
     return w, loss
 
@@ -393,7 +398,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w
     for n_iter in range(max_iters):
         gradient = compute_log_gradient(y, tx, w) + 2 * lambda_ * w
-        w -= gamma * gradient
+        w = w - gamma * gradient
     loss = compute_log_loss(y, tx, w)
     return w, loss
 
@@ -489,7 +494,7 @@ def threshold_selection_and_plot(tx_te, y_te, w):
         best_accruacy: the best accruacy of the model.
     """
     
-    threshold = np.linspace(-2, 2, 200)
+    threshold = np.linspace(0, 1, 1000)
     accruacy = [compute_accuracy(tx_te, y_te, w, j) for j in threshold]
     plt.plot(threshold, accruacy, c='blue')
     plt.xlabel("Threshold")
@@ -498,6 +503,35 @@ def threshold_selection_and_plot(tx_te, y_te, w):
     best_accruacy = np.max(accruacy)
     return  best_threshold, best_accruacy
 
+def threshold_selection_and_plot_log(tx_te, y_te, w):
+    """Threshold selection for polynomial regression model in the purpose of 
+        classifcation; i.e if prediction > threshold then
+        1 else 0.
+        Here we compute the threshold corresponding to the best
+        accruacy.
+        This method also plots the threshold-accruacy graph.
+    
+    Args:
+        tx_te: test numpy array of shape (N,D),
+            N is the number of samples, D is the number of features
+        y_te: test numpy array of shape (N), 
+            N is the number of samples, labels for tx_te.
+        w:  the weights to use to predict y_te from tx_te.
+    
+    Returns:
+        best_threshold: threshold corresponding to the best
+            accruacy of the model.
+        best_accruacy: the best accruacy of the model.
+    """
+    
+    threshold = np.linspace(0, 1, 1000)
+    accruacy = [compute_accuracy_log(tx_te, y_te, w, j) for j in threshold]
+    plt.plot(threshold, accruacy, c='blue')
+    plt.xlabel("Threshold")
+    plt.ylabel("Accruacy")
+    best_threshold = threshold[np.argmax(accruacy)]
+    best_accruacy = np.max(accruacy)
+    return  best_threshold, best_accruacy
 
 
 def ridge_lambdas_and_threshold (y_tr, tx_tr, y_te, tx_te):
@@ -516,14 +550,18 @@ def ridge_lambdas_and_threshold (y_tr, tx_tr, y_te, tx_te):
             samples, labels for tx_te
     """
     
-    
-    lambdas = np.logspace(-5, 0, 30)
+    lambdas = np.logspace(-5, 0, 20)
+    recorded_vals = []
     for lamb in lambdas:
         w_REG, loss_tr = ridge_regression(y_tr, tx_tr, lamb)
-        threshold = np.linspace(-2, 2, 200)
+        threshold = np.linspace(0, 1, 1000)
         accruacy = [compute_accuracy(tx_te, y_te, w_REG, j) for j in threshold]
-        print("lambda=", lamb, "best threshold=", threshold[np.argmax(accruacy)],
-              "accruacy=",np.max(accruacy))
+        recorded_vals.append((np.max(accruacy), threshold[np.argmax(accruacy)], lamb))
+    
+    optindex = np.argmax([elem[0] for elem in recorded_vals])
+    print("lambda=", recorded_vals[optindex][2],
+          "best threshold=", recorded_vals[optindex][1],
+          "accruacy=",recorded_vals[optindex][0])
         
 
 def write_to_csv(y, path):
@@ -536,5 +574,3 @@ def write_to_csv(y, path):
     
     np.savetxt(path, y, delimiter=",", newline="\n", header="Id,Prediction", comments="")
     
-    
-
