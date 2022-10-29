@@ -28,17 +28,17 @@ tx_te = add_x_bias(x_te)
 
 print("Training the model")
 # We run GD step times per epoch, for epochs epochs (same as running GD for epochs*step just lets us print intermediate results)
-lambda_reg = 1e-4
+lambda_reg = 0.75e-4
 w, epochs, step, gamma = np.zeros(105), 30, 150, 0.5
 loss_te_LIST = []
 w_LIST = []
 
-for i in range((int)(epochs)):
+for i in range(epochs):
     w, loss_tr = reg_logistic_regression(y_tr, tx_tr, lambda_reg, w, step, gamma)
     loss_te = compute_log_loss(y_te, tx_te, w)
     loss_te_LIST.append(loss_te)
     w_LIST.append(w)
-    print(f"Epoch {i} : Training loss: {loss_tr} Test loss: {loss_te}")
+    print(f"Epoch {i}/{epochs} : Training loss: {loss_tr} Test loss: {loss_te}")
     
 w = w_LIST[np.argmin(loss_te_LIST)] # Best w
 
