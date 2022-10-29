@@ -39,7 +39,7 @@ for i in range((int)(epochs)):
     loss_te_LIST.append(loss_te)
     print(f"Epoch {i} : Training loss: {loss_tr} Test loss: {loss_te}")
     
-w = w_LIST[np.argmin(loss_te)] # Best w
+w = w_LIST[np.argmin(loss_te_LIST)] # Best w
 
 best_threshold, best_accuracy = threshold_selection_and_plot_log(
     tx_te, y_te, w
