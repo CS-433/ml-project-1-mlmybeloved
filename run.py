@@ -34,7 +34,7 @@ loss_te_LIST = []
 w_LIST = []
 
 for i in range((int)(epochs)):
-    w, loss_tr = reg_logistic_regression(y_tr, tx_tr, w, step, gamma)
+    w, loss_tr = reg_logistic_regression(y_tr, tx_tr, lambda_reg, w, step, gamma)
     loss_te = compute_log_loss(y_te, tx_te, w)
     loss_te_LIST.append(loss_te)
     print(f"Epoch {i} : Training loss: {loss_tr} Test loss: {loss_te}")
