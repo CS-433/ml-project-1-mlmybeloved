@@ -1,7 +1,7 @@
 # CS-433 Machine Learning - Project 1
 The goal of this project is to train a machine learning model to detect a Higgs boson from a decay signature. For this purpose we build a binary classifier which takes as input a decay signature and labels it as coming from a Higgs boson or from another particle/process.
 ## Data
-The data comes from the CERN particle accelerator and was made available on [aircrowd](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs/dataset_files).
+The data comes from the CERN particle accelerator and was made available on [aicrowd](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs/dataset_files).
 ## Methods
 - Linear regression using gradient descent
 - Linear regression using stochastic gradient descent
