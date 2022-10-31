@@ -15,10 +15,11 @@ The data comes from the CERN particle accelerator and was made available on [aic
 * The notebook file contains the data loading, preprocessing, model training and result generation for each of the above methods.
 * The *project1_description.pdf* file contains project information.
 * The *run.py* script runs our pipeline consisting of: data loading, preprocessing, model training and result generation for the best training model we have found experimentally.  
-**Important note: the data is split at random in two sets for training and testing. This leads to some variability in the performance of each run.**
+**Important note: the data is split at random in two sets for training and testing. This leads to some variability in the performance of each run. For the submission, we set the seed to 0.**
 * The *report.pdf* file contains more precise information about how everything was created and tested and explains the choices we have made to try and improve the performance of our model.
   
  ## Running the model
 In order to run *run.py*, it has to be at the same level as *implementations.py* and the *test.csv* and *train.csv* files found on aircrowd. This script will produce a file called *output.csv* with the predictions for *test.csv*.
 If you also want to use the notebook file, the same file structure should be respected.
-Our best results obtained on aicrowd with this model were: accuracy: 0.808 F1-score: 0.702
+Our best results **using a random seed** obtained on aicrowd with this model were: accuracy: 0.808 F1-score: 0.702
+Our submission results with seed 0 are: accuracy: 0.804 F1-score: 0.702
