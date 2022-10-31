@@ -20,6 +20,6 @@ The data comes from the CERN particle accelerator and was made available on [aic
   
  ## Running the model
 In order to run *run.py*, it has to be at the same level as *implementations.py* and the *test.csv* and *train.csv* files found on aircrowd. This script will produce a file called *output.csv* with the predictions for *test.csv*.
-If you also want to use the notebook file, the same file structure should be respected.
-Our best results **using a random seed** obtained on aicrowd with this model were: accuracy: 0.808 F1-score: 0.702
-Our submission results with seed 0 are: accuracy: 0.804 F1-score: 0.702
+If you also want to use the notebook file, the same file structure should be respected.  
+Our best results **using a random seed** obtained on aicrowd with this model were: accuracy: 0.808 F1-score: 0.702.  
+Our submission results with seed 0 are: accuracy: 0.804 F1-score: 0.702.
