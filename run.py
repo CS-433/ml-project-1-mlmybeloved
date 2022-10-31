@@ -12,7 +12,7 @@ y, x = load_data(train=True, mode=LOAD_DATA_MODE[0])  # Load data (DER)
 y_indexes, x_test = load_data(train=False, mode=LOAD_DATA_MODE[0])
 
 print("Preprocessing the data")
-x_tr, x_te, y_tr, y_te = split_data(x, y, 0.8, np.random.seed())
+x_tr, x_te, y_tr, y_te = split_data(x, y, 0.8, np.random.seed(0))  # Set the seed
 
 x_tr = replace_min_999_by_col_mean(x_tr)  # Handle invalid values
 x_te = replace_min_999_by_col_mean(x_te)
